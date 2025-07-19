@@ -149,13 +149,13 @@ def update_time(epd, font):
             
             # Draw the current time
             draw.rectangle((10, 5, 130, 55), fill = 0)
-            draw.text((10, 5), time.strftime('%H:%M:%S'), font = font24, fill = 255)
+            draw.text((10, 5), time.strftime('%H:%M'), font = font24, fill = 255)
             
             # Partial refresh just the time section on the e-ink screen
             epd.display_Partial(epd.getbuffer_Part(Himage_Part, 140, 60), 10, 120, 150, 180)
             
-            # Sleep for 1/4 second before updating again
-            time.sleep(0.25)
+            # Sleep for 1 second before updating again
+            time.sleep(1)
     except Exception as e:
         logging.error(f"Error updating time: {e}")
 
