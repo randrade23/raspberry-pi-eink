@@ -124,8 +124,8 @@ def display_weather(epd, font, latitude, longitude):
         
         # Calculate position for the top-right corner
         image_width, image_height = weather_icon.size
-        position_x = epd.width - image_width - 10  # 10px padding from the right edge
-        position_y = 10  # 10px padding from the top edge
+        position_x = epd.width - image_width # images have padding already
+        position_y = 0 # same as above
         
         # Paste the weather image onto the main image
         Himage.paste(weather_icon, (position_x, position_y))  # Adjust position dynamically
