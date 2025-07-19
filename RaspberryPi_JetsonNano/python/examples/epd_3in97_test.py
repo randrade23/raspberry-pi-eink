@@ -122,8 +122,13 @@ def display_weather(epd, font, latitude, longitude):
         weather_image_path = os.path.join(picdir, "weather", weather_image)
         weather_icon = Image.open(weather_image_path)
         
+        # Calculate position for the top-right corner
+        image_width, image_height = weather_icon.size
+        position_x = epd.width - image_width - 10  # 10px padding from the right edge
+        position_y = 10  # 10px padding from the top edge
+        
         # Paste the weather image onto the main image
-        Himage.paste(weather_icon, (10, 130))  # Adjust position as needed
+        Himage.paste(weather_icon, (position_x, position_y))  # Adjust position dynamically
         
         # Display the combined image on the e-ink screen
         epd.display(epd.getbuffer(Himage))
