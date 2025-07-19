@@ -119,7 +119,7 @@ def display_weather(epd, font, latitude, longitude):
         draw.text((10, 90), f"Condition: {weather_description}", font=font, fill=0)
         
         # Load the weather image
-        weather_image_path = os.path.join(picdir, weather_image)
+        weather_image_path = os.path.join(picdir, "weather", weather_image)
         weather_icon = Image.open(weather_image_path)
         
         # Paste the weather image onto the main image
