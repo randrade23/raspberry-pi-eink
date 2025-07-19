@@ -13,6 +13,8 @@ import time
 from PIL import Image,ImageDraw,ImageFont
 import traceback
 import requests
+import threading
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -137,6 +139,27 @@ def display_weather(epd, font, latitude, longitude):
     except Exception as e:
         logging.error(f"Error displaying weather: {e}")
 
+def update_time(epd, font):
+    """Continuously update the current time on the e-ink display using partial refresh."""
+    try:
+        while True:
+            # Create a new image for partial refresh
+            Himage_Part = Image.new('1', (150, 50), 255)  # 255: clear the frame
+            draw = ImageDraw.Draw(Himage_Part)
+            
+            # Draw the current time
+            current_time = time.strftime('%H:%M:%S')
+            draw.rectangle((0, 0, 150, 50), fill=255)  # Clear the area
+            draw.text((10, 10), current_time, font=font, fill=0)
+            
+            # Perform partial refresh
+            epd.display_Partial(epd.getbuffer(Himage_Part), 650, 10, 800, 60)  # Top-right corner
+            
+            # Sleep for 1 second before updating again
+            time.sleep(1)
+    except Exception as e:
+        logging.error(f"Error updating time: {e}")
+
 # Main program
 try:
     logging.info("epd3in97 Demo")
@@ -154,12 +177,14 @@ try:
     font24 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24)
     display_weather(epd, font24, latitude, longitude)
     
-    # logging.info("Clear...")
-    # epd.init()
-    # epd.Clear()
+    # Start a separate thread to update the time
+    time_thread = threading.Thread(target=update_time, args=(epd, font24))
+    time_thread.daemon = True  # Ensure the thread exits when the main program exits
+    time_thread.start()
     
-    logging.info("Goto Sleep...")
-    epd.sleep()
+    # Keep the main program running
+    while True:
+        time.sleep(1)
         
 except IOError as e:
     logging.info(e)
