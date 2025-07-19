@@ -144,16 +144,15 @@ def update_time(epd, font):
     try:
         while True:
             # Create a new image for partial refresh
-            Himage_Part = Image.new('1', (150, 50), 255)  # 255: clear the frame
+            Himage_Part = Image.new('1', (140, 60), 0)
             draw = ImageDraw.Draw(Himage_Part)
             
             # Draw the current time
-            current_time = time.strftime('%H:%M:%S')
-            draw.rectangle((0, 0, 150, 50), fill=255)  # Clear the area
-            draw.text((10, 10), current_time, font=font, fill=0)
+            draw.rectangle((10, 5, 130, 55), fill = 0)
+            draw.text((10, 5), time.strftime('%H:%M:%S'), font = font24, fill = 255)
             
-            # Perform partial refresh
-            epd.display_Partial(epd.getbuffer(Himage_Part), 650, 10, 800, 60)  # Top-right corner
+            # Partial refresh just the time section on the e-ink screen
+            epd.display_Partial(epd.getbuffer_Part(Himage_Part, 140, 60),10, 120, 150, 180)
             
             # Sleep for 1 second before updating again
             time.sleep(1)
