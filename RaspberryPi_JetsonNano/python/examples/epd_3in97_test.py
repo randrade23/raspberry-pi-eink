@@ -126,7 +126,7 @@ def display_weather(epd, font, latitude, longitude):
         Himage.paste(weather_icon, (10, 130))  # Adjust position as needed
         
         # Display the combined image on the e-ink screen
-        epd.display_4GRAY(epd.getbuffer_4Gray(Himage))
+        epd.display(epd.getbuffer(Himage))
         time.sleep(2)
 
     except Exception as e:
