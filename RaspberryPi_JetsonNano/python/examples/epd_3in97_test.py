@@ -83,18 +83,28 @@ def get_weather(latitude, longitude):
         # Get weather description using the function
         weather_description = get_weather_description(weather_state)
         
-        return f"Temperature: {temperature}°C, Weather: {weather_description}"
+        # Return structured data
+        return {
+            "temperature": temperature,
+            "weather_code": weather_state,
+            "weather_description": weather_description
+        }
     
     except requests.exceptions.RequestException as e:
-        return f"Error fetching weather data: {e}"
+        logging.error(f"Error fetching weather data: {e}")
+        return None
 
 def display_weather(epd, font, latitude, longitude):
     try:
         # Fetch weather data
-        weather_info = get_weather(latitude, longitude)
+        weather_data = get_weather(latitude, longitude)
+        if not weather_data:
+            return
         
-        # Extract weather code from the response
-        weather_code = int(weather_info.split(", Weather: ")[1].split()[0])  # Extract weather code
+        # Extract data
+        temperature = weather_data["temperature"]
+        weather_code = weather_data["weather_code"]
+        weather_description = weather_data["weather_description"]
         
         # Get the corresponding image filename
         weather_image = get_weather_image(weather_code)
@@ -105,14 +115,15 @@ def display_weather(epd, font, latitude, longitude):
         
         # Draw the weather information text
         draw.text((10, 10), "Weather in Porto:", font=font, fill=0)
-        draw.text((10, 50), weather_info, font=font, fill=0)
+        draw.text((10, 50), f"Temperature: {temperature}°C", font=font, fill=0)
+        draw.text((10, 90), f"Condition: {weather_description}", font=font, fill=0)
         
         # Load the weather image
         weather_image_path = os.path.join(picdir, weather_image)
         weather_icon = Image.open(weather_image_path)
         
         # Paste the weather image onto the main image
-        Himage.paste(weather_icon, (10, 100))  # Adjust position as needed
+        Himage.paste(weather_icon, (10, 130))  # Adjust position as needed
         
         # Display the combined image on the e-ink screen
         epd.display_4GRAY(epd.getbuffer_4Gray(Himage))
