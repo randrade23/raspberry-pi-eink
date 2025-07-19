@@ -16,8 +16,53 @@ import requests
 
 logging.basicConfig(level=logging.DEBUG)
 
+def get_weather_description(weather_code):
+    if weather_code in [0]:
+        return "Clear sky"
+    elif weather_code in [1]:
+        return "Mainly clear"
+    elif weather_code in [2]:
+        return "Partly cloudy"
+    elif weather_code in [3]:
+        return "Overcast"
+    elif weather_code in [45, 48]:
+        return "Fog"
+    elif weather_code in [51, 61, 80]:
+        return "Light rain"
+    elif weather_code in [53, 63, 81]:
+        return "Moderate rain"
+    elif weather_code in [55, 65, 82]:
+        return "Heavy rain"
+    elif weather_code in [95]:
+        return "Thunderstorm"
+    elif weather_code in [99]:
+        return "Severe thunderstorm"
+    else:
+        return "Unknown weather condition"
 
-
+def get_weather_image(weather_code):
+    """Map weather codes to image filenames."""
+    if weather_code in [0]:
+        return "00.bmp"  # Clear sky
+    elif weather_code in [1]:
+        return "01.bmp"  # Mainly clear
+    elif weather_code in [2, 3]:
+        return "02.bmp"  # Partly cloudy or overcast
+    elif weather_code in [45, 48]:
+        return "57.bmp"  # Fog
+    elif weather_code in [51, 61, 80]:
+        return "09.bmp"  # Light rain
+    elif weather_code in [53, 63, 81]:
+        return "10.bmp"  # Moderate rain
+    elif weather_code in [55, 65, 82]:
+        return "12.bmp"  # Heavy rain
+    elif weather_code in [95]:
+        return "21.bmp"  # Thunderstorm
+    elif weather_code in [99, 25]:
+        return "25.bmp"  # Severe thunderstorm
+    else:
+        return "99.bmp"  # Unknown or N/A
+    
 def get_weather(latitude, longitude):
     try:
         # Open-Meteo API endpoint
@@ -35,51 +80,44 @@ def get_weather(latitude, longitude):
         temperature = current_weather.get("temperature")
         weather_state = current_weather.get("weathercode")
         
-        # Map weather codes to descriptions (simplified example)
-        weather_descriptions = {
-            0: "Clear sky",
-            1: "Mainly clear",
-            2: "Partly cloudy",
-            3: "Overcast",
-            45: "Fog",
-            48: "Depositing rime fog",
-            51: "Drizzle: Light",
-            53: "Drizzle: Moderate",
-            55: "Drizzle: Dense",
-            61: "Rain: Slight",
-            63: "Rain: Moderate",
-            65: "Rain: Heavy",
-            80: "Rain showers: Slight",
-            81: "Rain showers: Moderate",
-            82: "Rain showers: Violent",
-            95: "Thunderstorm: Slight or moderate",
-            99: "Thunderstorm: Heavy hail"
-        }
-        
-        weather_description = weather_descriptions.get(weather_state, "Unknown weather condition")
+        # Get weather description using the function
+        weather_description = get_weather_description(weather_state)
         
         return f"Temperature: {temperature}°C, Weather: {weather_description}"
     
     except requests.exceptions.RequestException as e:
         return f"Error fetching weather data: {e}"
 
-# Add this function to fetch and display weather data
 def display_weather(epd, font, latitude, longitude):
     try:
         # Fetch weather data
         weather_info = get_weather(latitude, longitude)
         
+        # Extract weather code from the response
+        weather_code = int(weather_info.split(", Weather: ")[1].split()[0])  # Extract weather code
+        
+        # Get the corresponding image filename
+        weather_image = get_weather_image(weather_code)
+        
         # Create a new image for the e-ink display
         Himage = Image.new('1', (epd.width, epd.height), 255)  # 255: clear the frame
         draw = ImageDraw.Draw(Himage)
         
-        # Draw the weather information
+        # Draw the weather information text
         draw.text((10, 10), "Weather in Porto:", font=font, fill=0)
         draw.text((10, 50), weather_info, font=font, fill=0)
         
-        # Display the image on the e-ink screen
-        epd.display(epd.getbuffer(Himage))
+        # Load the weather image
+        weather_image_path = os.path.join(picdir, weather_image)
+        weather_icon = Image.open(weather_image_path)
+        
+        # Paste the weather image onto the main image
+        Himage.paste(weather_icon, (10, 100))  # Adjust position as needed
+        
+        # Display the combined image on the e-ink screen
+        epd.display_4GRAY(epd.getbuffer_4Gray(Himage))
         time.sleep(2)
+
     except Exception as e:
         logging.error(f"Error displaying weather: {e}")
 
